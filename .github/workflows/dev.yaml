@@ -1,4 +1,3 @@
-
 name: Dev Deploy
 
 on:
@@ -10,6 +9,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+      NEXT_PUBLIC_CDN_URL: ${{ secrets.NEXT_PUBLIC_CDN_URL }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,9 +21,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-
-      - name: Load Dev env
-        run: cp env/dev.env .env
 
       - name: Install dependencies
         run: npm install
@@ -41,4 +41,3 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
           SOURCE_DIR: ./out
-
