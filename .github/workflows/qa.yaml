@@ -24,7 +24,10 @@ jobs:
           cache: 'npm'
 
       - name: Load QA env
-        run: cp env/qa.env .env
+        run: |
+          echo "NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+          echo "NEXT_PUBLIC_CDN_URL=${{ secrets.NEXT_PUBLIC_CDN_URL }}" >> .env
 
       - name: Install dependencies
         run: npm ci
