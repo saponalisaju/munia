@@ -9,42 +9,33 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      BUNNYCDN_PULLZONE_ID: ${{ secrets.BUNNYCDN_PULLZONE_ID }}
-      BUNNYCDN_API_KEY: ${{ secrets.BUNNYCDN_API_KEY }}
-
     steps:
-      # 1️⃣ Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # 3️⃣ Load QA env
       - name: Load QA env
         run: |
+          echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+          echo "BUNNYCDN_PULLZONE_ID=${{ secrets.BUNNYCDN_PULLZONE_ID }}" >> .env
+          echo "BUNNYCDN_API_KEY=${{ secrets.BUNNYCDN_API_KEY }}" >> .env
           echo "NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}" >> .env
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
           echo "NEXT_PUBLIC_CDN_URL=${{ secrets.NEXT_PUBLIC_CDN_URL }}" >> .env
 
-      # 4️⃣ Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 5️⃣ Build Next.js
       - name: Build Next.js
         run: npm run build
 
-      # 6️⃣ Export static site
-      - name: Export static site
-        run: npm run export
-
-      # 7️⃣ Deploy to S3
       - name: Deploy to S3
         uses: jakejarvis/s3-sync-action@v0.5.1
         with:
@@ -54,9 +45,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
-          SOURCE_DIR: ./out
+          SOURCE_DIR: ./.next # Next.js server-side build folder
 
-      # 8️⃣ Purge BunnyCDN cache
       - name: Purge BunnyCDN cache
         run: |
           echo "Purging BunnyCDN cache for Pull Zone $BUNNYCDN_PULLZONE_ID..."

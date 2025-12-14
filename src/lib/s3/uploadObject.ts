@@ -1,8 +1,7 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import path from 'path';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: path.resolve('env/dev.env') });
+dotenv.config();
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION!,
