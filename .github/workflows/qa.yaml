@@ -35,10 +35,6 @@ jobs:
       - name: Build Next.js
         run: npm run build
 
-      # 6️⃣ Export static site
-      - name: Export static site
-        run: npm run export
-
       # 7️⃣ Deploy to S3
       - name: Deploy to S3
         uses: jakejarvis/s3-sync-action@v0.5.1
