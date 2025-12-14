@@ -14,26 +14,35 @@ jobs:
       BUNNYCDN_API_KEY: ${{ secrets.BUNNYCDN_API_KEY }}
 
     steps:
+      # 1️⃣ Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
+      # 3️⃣ Load QA env
       - name: Load QA env
         run: |
           echo "NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}" >> .env
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
           echo "NEXT_PUBLIC_CDN_URL=${{ secrets.NEXT_PUBLIC_CDN_URL }}" >> .env
 
+      # 4️⃣ Install dependencies
       - name: Install dependencies
         run: npm ci
 
+      # 5️⃣ Build Next.js
       - name: Build Next.js
         run: npm run build
+
+      # 6️⃣ Export static site
+      - name: Export static site
+        run: npm run export
 
       # 7️⃣ Deploy to S3
       - name: Deploy to S3
