@@ -8,7 +8,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'munia-qa-bucket.s3.eu-north-1.amazonaws.com',
+        hostname: 'munia-qa-bucket.s3-website-eu-north-1.amazonaws.com',
         port: '',
       },
     ],
