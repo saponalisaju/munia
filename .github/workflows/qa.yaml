@@ -36,16 +36,19 @@ jobs:
       - name: Build Next.js
         run: npm run build
 
+      - name: Export static site
+        run: npm run export # `out` folder তৈরি হবে
+
       - name: Deploy to S3
         uses: jakejarvis/s3-sync-action@v0.5.1
         with:
-          args: --acl public-read --delete
+          args: --delete # <-- remove --acl public-read
         env:
           AWS_S3_BUCKET: ${{ secrets.AWS_BUCKET_NAME }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
-          SOURCE_DIR: ./.next # Next.js server-side build folder
+          SOURCE_DIR: ./out # exported static folder
 
       - name: Purge BunnyCDN cache
         run: |
