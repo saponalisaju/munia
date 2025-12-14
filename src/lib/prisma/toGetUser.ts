@@ -15,7 +15,7 @@ export const toGetUser = (findUserResult: FindUserResult): GetUser => {
   // in `GetUser`. The `rest` below contains the properties
   // of the `User` type of @prisma/client.
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const { followers, _count, ...rest } = findUserResult;
+  const { ...rest } = findUserResult;
 
   const userResponse: GetUser = {
     ...rest,

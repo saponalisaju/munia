@@ -76,7 +76,7 @@ export const {
   },
   callbacks: {
     ...authConfig.callbacks,
-    session({ token, user, ...rest }) {
+    session({ token, ...rest }) {
       return {
         /**
          * We need to explicitly return the `id` here to make it available to the client
