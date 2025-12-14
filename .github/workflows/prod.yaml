@@ -2,67 +2,60 @@ name: QA Deploy to EC2 (Production)
 
 on:
   push:
-    branches: [main] # production deploy branch
+    branches: [main]
 
 jobs:
-  deploy-to-ec2:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
       - uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      # 3️⃣ Load PROD env
-      - name: Load PROD env
+      # 1️⃣ Create env file
+      - name: Create .env
         run: |
           echo "NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}" >> .env
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
           echo "NEXT_PUBLIC_CDN_URL=${{ secrets.NEXT_PUBLIC_CDN_URL }}" >> .env
 
-      # 4️⃣ Install dependencies & build
-      - run: npm ci
-      - run: npm run build
+      # 2️⃣ Build Docker image
+      - name: Build Docker image
+        run: docker build -t munia-prod .
 
-      # 5️⃣ Archive production build
-      - name: Archive build
-        run: zip -r prod-build.zip .next node_modules package.json public
+      # 3️⃣ Save image
+      - name: Save Docker image
+        run: docker save munia-prod | gzip > munia-prod.tar.gz
 
-      # 6️⃣ Copy files to EC2
-      - name: Copy files to EC2
+      # 4️⃣ Copy image to EC2
+      - name: Copy image to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          port: 22
-          source: 'prod-build.zip'
-          target: '/home/ubuntu/deploy/'
+          source: 'munia-prod.tar.gz'
+          target: '/home/ubuntu/'
 
-      # 7️⃣ SSH & Deploy on EC2
-      - name: Deploy on EC2
+      # 5️⃣ Run Docker on EC2
+      - name: Deploy & Run on EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          port: 22
           script: |
-            cd /home/ubuntu/deploy
-            unzip -o prod-build.zip -d app
-            cd app
-            npm install --production
-            pm2 stop all || true
-            pm2 start npm --name "munia-prod" -- start
-            pm2 save
+            docker load < munia-prod.tar.gz
+            docker stop munia-prod || true
+            docker rm munia-prod || true
+            docker run -d \
+              --name munia-prod \
+              --env-file .env \
+              -p 3002:3002 \
+              --restart always \
+              munia-prod
 
-      # 8️⃣ Purge BunnyCDN cache
       - name: Purge BunnyCDN cache
         run: |
-          curl -X POST "https://bunnycdn.com/api/pullzone/${{ secrets.BUNNYCDN_PULLZONE_ID }}/purgeCache" \
-               -H "AccessKey: ${{ secrets.BUNNYCDN_API_KEY }}"
+          curl -X POST \
+          "https://bunnycdn.com/api/pullzone/${{ secrets.BUNNYCDN_PULLZONE_ID }}/purgeCache" \
+          -H "AccessKey: ${{ secrets.BUNNYCDN_API_KEY }}"
