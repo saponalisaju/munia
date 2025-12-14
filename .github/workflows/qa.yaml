@@ -2,58 +2,25 @@ name: QA Deploy
 
 on:
   push:
-    branches:
-      - qa
+    branches: [qa]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
-    env:
-      BUNNYCDN_PULLZONE_ID: ${{ secrets.BUNNYCDN_PULLZONE_ID }}
-      BUNNYCDN_API_KEY: ${{ secrets.BUNNYCDN_API_KEY }}
-
     steps:
-      # 1️⃣ Checkout
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # 3️⃣ Load QA env
       - name: Load QA env
         run: |
           echo "NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}" >> .env
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
           echo "NEXT_PUBLIC_CDN_URL=${{ secrets.NEXT_PUBLIC_CDN_URL }}" >> .env
 
-      # 4️⃣ Install dependencies
-      - name: Install dependencies
-        run: npm ci
-
-      # 5️⃣ Build Next.js
-      - name: Build Next.js
-        run: npm run build
-
-      # 7️⃣ Deploy to S3
-      - name: Deploy to S3
-        uses: jakejarvis/s3-sync-action@v0.5.1
-        with:
-          args: --delete
-        env:
-          AWS_S3_BUCKET: ${{ secrets.AWS_BUCKET_NAME }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-north-1
-
-      # 8️⃣ Purge BunnyCDN cache
-      - name: Purge BunnyCDN cache
-        run: |
-          echo "Purging BunnyCDN cache for Pull Zone $BUNNYCDN_PULLZONE_ID..."
-          curl -X POST "https://bunnycdn.com/api/pullzone/${BUNNYCDN_PULLZONE_ID}/purgeCache" \
-               -H "AccessKey: ${BUNNYCDN_API_KEY}"
+      - run: npm ci
+      - run: npm run build

@@ -14,10 +14,10 @@ const s3 = new S3Client({
 });
 
 async function uploadFile() {
-  const filePath = './uploadTest/sample.txt';
+  const filePath = './uploadTest/updated_2.jpg';
   const fileContent = fs.readFileSync(filePath);
 
-  const fileName = `sample-${Date.now()}.txt`;
+  const fileName = `sample-${Date.now()}.jpg`;
 
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME!,

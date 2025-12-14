@@ -2,7 +2,7 @@ name: QA Deploy to EC2 (Production)
 
 on:
   push:
-    branches: [main] # production deploy branch
+    branches: [test-deploy] # production deploy branch
 
 jobs:
   deploy-to-ec2:
@@ -19,7 +19,7 @@ jobs:
           cache: 'npm'
 
       # 3️⃣ Load PROD env
-      - name: Load PROD env
+      - name: Load Test Deploy env
         run: |
           echo "NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}" >> .env
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
